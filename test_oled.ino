@@ -160,91 +160,11 @@ void setup() {
   // Clear the buffer
   display.clearDisplay();
 
-  // Draw bitmap on the screen
+  // Draw bitmap orbittas logo on the screen
   display.drawBitmap(0, 0, ORBITTAS_BMP_LOGO, 128, 64, 1);
   display.display();
   delay(1500);
 
-
-  //display.drawRect(0, y, 128, 32, WHITE);   // Para saber el tamaño de la pantalla a usar
-
-  /*
-    display.setCursor(3, y);            // Start at top-left corner
-    display.println(F("PA"));
-    display.setCursor(31, y);            // Start at top-left corner
-    display.println(F("PA"));
-    display.setCursor(59, y);            // Start at top-left corner
-    display.println(F("PA"));
-    display.setCursor(87, y);            // Start at top-left corner
-    display.println(F("PA"));
-    display.setCursor(115, y);            // Start at top-left corner
-    display.println(F("PA"));
-
-    display.setTextSize(1);             // Normal 1:1 pixel scale
-    display.setTextColor(WHITE);        // Draw white text
-    display.setCursor(0, y);            // Start at top-left corner
-    display.println(F("HELLO WORLD!"));
-    display.setCursor(1, y+9);            // Start at top-left corner
-    display.println(F("LOW BATTERY!"));
-
-    display.setTextSize(2);             // Normal 1:1 pixel scale
-    display.setTextColor(WHITE);        // Draw white text
-    display.setCursor(1, y+18);            // Start at top-left corner
-
-    display.setTextSize(2);             // Normal 1:1 pixel scale
-    display.setCursor(1, y+18);            // Start at top-left corner
-    display.println(F("12:24 am"));
-
-    display.setTextSize(1);             // Normal 1:1 pixel scale
-    display.setTextColor(WHITE);        // Draw white text
-    display.setCursor(1, y+24);            // Start at top-left corner
-    display.println(F("PLAIN TEXT"));
-  */
-
-  //----------------- HOME PAGE ---------------------------//
-  /*
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setTextColor(WHITE);
-    //display.drawBitmap(2, y, barra, 128, 32, 1);
-
-
-    display.drawBitmap(3, y, stepsV2, 10, 8, 1);
-    display.drawBitmap(31, y, check, 10, 8, 1);
-    display.drawBitmap(59, y, alert, 10, 8, 1);
-    display.drawBitmap(87, y, acceleration, 10, 8, 1);
-    display.drawBitmap(115, y, velocityV2, 10, 8, 1);
-
-    display.setCursor(3, y + 9);
-    display.println(F("12"));
-    display.setCursor(31, y + 9);
-    display.println(F("41"));
-    display.setCursor(59, y + 9);
-    display.println(F("00"));
-    display.setCursor(87, y + 9);
-    display.println(F("99"));
-    display.setCursor(115, y + 9);
-    display.println(F("87"));
-
-    display.setTextSize(2);
-    display.setCursor(17, y + 18);
-    display.println(F("10:03 am"));
-
-    display.display();
-    delay(5000);
-  */
-  //-------------------------------------------------------//
-  /*
-    display.clearDisplay();
-    display.setTextSize(1);
-    display.setCursor(3, y + 9);
-    display.println(F("INICIANDO EQUIPO"));
-
-    display.display();
-  */
-  //----------------- HOME PAGE ---------------------------//
-
-  //-------------------------------------------------------//
   digitalWrite(ledPin, LOW);
 }
 
@@ -252,68 +172,204 @@ void loop() {
   int tt = 4;
   int xx = 59;
   int yy = y + 9;
-  int current_time;
+  tt = 500;
+  int current_time = millis();
 
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setTextColor(WHITE);
-  //display.drawBitmap(2, y, barra, 128, 32, 1);
-  //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
+  while (millis() - current_time <= 2500) {                   // Modo operacion, hora
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
 
-  display.drawBitmap(3, y, stepsV3, 10, 8, 1);
-  display.drawBitmap(31, y, check, 10, 8, 1);
-  display.drawBitmap(59, y, alert, 10, 8, 1);
-  display.drawBitmap(87, y, acceleration, 10, 8, 1);
-  display.drawBitmap(115, y, velocityV2, 10, 8, 1);
+    display.drawBitmap(6, y, stepsV3, 10, 8, 1);              // Logo stepsV3
+    display.drawBitmap(36, y, check, 10, 8, 1);               // Logo check
+    display.drawBitmap(59, y, alert, 10, 8, 1);               // Logo alert
+    display.drawBitmap(87, y, acceleration, 10, 8, 1);        // Logo acceleration
+    display.drawBitmap(115, y, velocityV2, 10, 8, 1);         // Logo velocityV2
 
-  display.setCursor(3, y + 9);
-  display.println(F("12"));
-  display.setCursor(31, y + 9);
-  display.println(F("41"));
-  display.setCursor(59, y + 9);
-  display.println(F("00"));
-  display.setCursor(87, y + 9);
-  display.println(F("99"));
-  display.setCursor(115, y + 9);
-  display.println(F("87"));
+    display.setCursor(0, y + 9);
+    display.println(F("0000"));
+    display.setCursor(32, y + 9);
+    display.println(F("000"));
+    display.setCursor(59, y + 9);
+    display.println(F("00"));
+    display.setCursor(87, y + 9);
+    display.println(F("00"));
+    display.setCursor(115, y + 9);
+    display.println(F("00"));
 
-  display.setTextSize(2);
-  display.setCursor(17, y + 18);
-  //display.println(F("10:03 am"));
-  display.println(F("B"));
-  display.drawBitmap(xx, y + 21, batt_empty_short, 16, 10, 1);    // Modo operacion, batería baja
+    display.setTextSize(2);
+    display.setCursor(20, y + 18);
+    display.println(F("10:03 am"));
 
-  display.display();
-  delay(5000);
+    display.display();
+  }
 
   current_time = millis();
-  while (millis() - current_time <= 5000) {
+  while (millis() - current_time <= 2500) {                   // Modo operacion, bateria baja
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
+
+    display.drawBitmap(6, y, stepsV3, 10, 8, 1);              // Logo stepsV3
+    display.drawBitmap(36, y, check, 10, 8, 1);               // Logo check
+    display.drawBitmap(59, y, alert, 10, 8, 1);               // Logo alert
+    display.drawBitmap(87, y, acceleration, 10, 8, 1);        // Logo acceleration
+    display.drawBitmap(115, y, velocityV2, 10, 8, 1);         // Logo velocityV2
+
+    display.setCursor(0, y + 9);
+    display.println(F("0010"));
+    display.setCursor(32, y + 9);
+    display.println(F("003"));
+    display.setCursor(59, y + 9);
+    display.println(F("02"));
+    display.setCursor(87, y + 9);
+    display.println(F("99"));
+    display.setCursor(115, y + 9);
+    display.println(F("87"));
+
+    display.setTextSize(1);
+    display.setCursor(20 , y + 23);
+    display.println(F("BATERIA BAJA"));
+    display.drawBitmap(xx + 38, y + 21, batt_empty_short, 16, 10, 1);    // Modo operacion -> batería baja
+
+    display.display();
+  }
+
+  current_time = millis();
+  while (millis() - current_time <= 2500) {                   // Modo operacion, Desconfigurado
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
+
+    display.drawBitmap(6, y, stepsV3, 10, 8, 1);              // Logo stepsV3
+    display.drawBitmap(36, y, check, 10, 8, 1);               // Logo check
+    display.drawBitmap(59, y, alert, 10, 8, 1);               // Logo alert
+    display.drawBitmap(87, y, acceleration, 10, 8, 1);        // Logo acceleration
+    display.drawBitmap(115, y, velocityV2, 10, 8, 1);         // Logo velocityV2
+
+    display.setCursor(0, y + 9);
+    display.println(F("0022"));
+    display.setCursor(32, y + 9);
+    display.println(F("108"));
+    display.setCursor(59, y + 9);
+    display.println(F("35"));
+    display.setCursor(87, y + 9);
+    display.println(F("67"));
+    display.setCursor(115, y + 9);
+    display.println(F("12"));
+
+    display.setTextSize(1);
+    display.setCursor(2 , y + 23);
+    display.println(F("EQUIPO DESCONFIGURADO"));
+    //display.drawBitmap(xx + 43, y + 21, batt_empty_short, 16, 10, 1);
+
+    display.display();
+  }
+
+  current_time = millis();
+  while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento incorrecto
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
+
+    display.drawBitmap(6, y, stepsV3, 10, 8, 1);              // Logo stepsV3
+    display.drawBitmap(36, y, check, 10, 8, 1);               // Logo check
+    display.drawBitmap(59, y, alert, 10, 8, 1);               // Logo alert
+    display.drawBitmap(87, y, acceleration, 10, 8, 1);        // Logo acceleration
+    display.drawBitmap(115, y, velocityV2, 10, 8, 1);         // Logo velocityV2
+
+    display.setCursor(0, y + 9);
+    display.println(F("0333"));
+    display.setCursor(32, y + 9);
+    display.println(F("022"));
+    display.setCursor(59, y + 9);
+    display.println(F("00"));
+    display.setCursor(87, y + 9);
+    display.println(F("43"));
+    display.setCursor(115, y + 9);
+    display.println(F("01"));
+
+    display.setTextSize(1);
+    display.setCursor(36, y + 18);
+    display.println(F("MOVIMIENTO"));
+    display.setCursor(36, y + 27);
+    display.println(F("INCORRECTO"));
+
+    display.display();
+  }
+
+  current_time = millis();
+  while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento correcto
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    //display.drawRect(0, y, 128, 32, WHITE);                 // Para saber el tamaño de la pantalla a usar
+
+    display.drawBitmap(6, y, stepsV3, 10, 8, 1);              // Logo stepsV3
+    display.drawBitmap(36, y, check, 10, 8, 1);               // Logo check
+    display.drawBitmap(59, y, alert, 10, 8, 1);               // Logo alert
+    display.drawBitmap(87, y, acceleration, 10, 8, 1);        // Logo acceleration
+    display.drawBitmap(115, y, velocityV2, 10, 8, 1);         // Logo velocityV2
+
+    display.setCursor(0, y + 9);
+    display.println(F("4444"));
+    display.setCursor(32, y + 9);
+    display.println(F("999"));
+    display.setCursor(59, y + 9);
+    display.println(F("00"));
+    display.setCursor(87, y + 9);
+    display.println(F("77"));
+    display.setCursor(115, y + 9);
+    display.println(F("56"));
+
+    display.setTextSize(1);
+    display.setCursor(36, y + 18);
+    display.println(F("MOVIMIENTO"));
+    display.setCursor(36, y + 27);
+    display.println(F(" CORRECTO "));
+
+    display.display();
+  }
+
+
+  current_time = millis();
+  while (millis() - current_time <= 3000) {
+    int ttt=4;
     for (int i = 0; i < 8; i++) {
       display.clearDisplay();
       display.setTextSize(1);
-      display.setCursor(16, y);
-      display.println(F("ACTIVANDO EQUIPO"));
+      display.setCursor(2, y);
+      display.println(F("  ACTIVANDO EQUIPO   "));
       display.drawBitmap(xx, yy, frames[i], 16, 16, 1);
       display.display();
-      delay(tt);
+      delay(ttt);
     }
   }
-  
+
   current_time = millis();
   while (millis() - current_time <= 2500) {
-      display.clearDisplay();
-      display.setTextSize(1);
-      display.setCursor(16, y);
-      display.println(F("ACTIVANDO EQUIPO"));
-      display.drawBitmap(xx, yy, error_imu, 16, 16, 1);
-      display.display();
-      delay(tt);
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(2, y);
+    display.println(F("  ACTIVANDO EQUIPO   "));
+    display.drawBitmap(xx, yy, error_imu, 16, 16, 1);
+    display.display();
+    delay(tt);
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setCursor(2, y);
+    display.println(F("  ACTIVANDO EQUIPO   "));
+    display.display();
+    delay(tt);
   }
 
   current_time = millis();
   while (millis() - current_time <= 2500) {   // Batt: EMPTY
-    tt = 500;
-
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(25, y);
@@ -425,4 +481,25 @@ void loop() {
     display.drawBitmap(xx, yy, batt_100, 24, 16, 1);
     display.display();
   }
+
+  current_time = millis();
+  while (millis() - current_time <= 2500) {
+    display.clearDisplay();
+    display.drawBitmap(xx, y, error_imu, 16, 16, 1);
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(2, y + 23);
+    display.println(F("  DESCARGAR LA DATA  "));
+    display.display();
+    delay(tt);
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(2, y + 23);
+    display.println(F("  DESCARGAR LA DATA  "));
+    display.display();
+    delay(tt);
+  }
+
 }
