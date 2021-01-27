@@ -298,6 +298,7 @@ void loop() {
       delay(tt);
     }
   }
+  
   current_time = millis();
   while (millis() - current_time <= 2500) {
       display.clearDisplay();
