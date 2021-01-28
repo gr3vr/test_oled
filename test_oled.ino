@@ -34,7 +34,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET); // Dec
 #define BATT_EMPTY            5
 //----------------------------------------
 
-int y = 16;                           // Offset para oled 128x64, Debe ser 0 para oled 128x32.
+int y = 19;                           // Offset para oled 128x64, Debe ser 0 para oled 128x32.
 
 //----------------------- VARIABLES MODO OPERACION -------------------
 int pasos;                            // Pasos.
