@@ -2,21 +2,39 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
+#define SCREEN_WIDTH  128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+#define OLED_RESET    -1 // Reset pin # (or -1 if sharing Arduino reset pin)
+
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-#define NUMFLAKES     10 // Number of snowflakes in the animation example
+#define ledPin            2
 
-#define ledPin        2
+#define ANIMATION_NUMBER  2     // Cant. de frames que cambiará cada vez que se llama la función
+#define ANIMATION_TIME    500   // Tiempo de muestreo entre cada frame
 
-#define LOGO_HEIGHT   32
-#define LOGO_WIDTH    128
+//-------- CONFIGURACION OLED ------------
+#define HORA                  1
+#define MOVIMIENTO_CORRECTO   2
+#define MOVIMIENTO_INCORRECTO 3
+#define BATERIA_BAJA          4
+#define DESCONFIGURADO        5
 
+#define BUFFER_LLENO          1
+#define ACTIVANDO_IMU         2
+#define ACTIVANDO_IMU_FALLA   3
+//----------------------------------------
 int y = 16;
+int pasos, pc, par, hi, hv;
+
+int tt = 4;
+int xx = 59;
+int yy = y + 9;
+int cont;
+
+//----------------------- LOGOS MODO OPERACION -----------------------
 
 static const uint8_t steps[16]        = {0x03, 0x00, 0x33, 0x80, 0x73, 0x80, 0x70, 0x80, 0x41, 0x80, 0x63, 0x80, 0x73, 0x00, 0x30, 0x00};
 static const uint8_t check[16]        = {0x00, 0x00, 0x01, 0x80, 0x03, 0x80, 0x67, 0x00, 0x7e, 0x00, 0x3c, 0x00, 0x18, 0x00, 0x00, 0x00};
@@ -27,7 +45,9 @@ static const uint8_t stepsV3[16]      = {0x03, 0x00, 0x33, 0x80, 0x73, 0x80, 0x7
 static const uint8_t velocity[16]     = {0x00, 0x00, 0x8f, 0xc0, 0x68, 0x40, 0x08, 0x40, 0xd8, 0x40, 0x08, 0x40, 0x6f, 0xc0, 0x00, 0x00};
 static const uint8_t velocityV2[16]   = {0xf0, 0xc0, 0x06, 0xc0, 0xe9, 0x00, 0x03, 0xc0, 0x66, 0x00, 0x09, 0x80, 0x10, 0x80, 0x61, 0x00};
 
-//---------------------- sprites animation load ------------------------------------------------
+//--------------------------------------------------------------------
+
+//---------------------- SPRITES LOAD ANIMATION ------------------------------------------------
 
 const unsigned char PROGMEM frames [9][33] = {
   {0x00, 0x00, 0x01, 0x80, 0x03, 0xC0, 0x02, 0x48, 0x3C, 0x3C, 0x20, 0x84, 0x33, 0xCC, 0x12, 0x48, 0x16, 0x68, 0x33, 0xCC, 0x20, 0x84, 0x3E, 0x3C, 0x02, 0x40, 0x03, 0xC0, 0x00, 0x80, 0x00, 0x00},
@@ -46,20 +66,144 @@ const unsigned char PROGMEM error_imu[] = {0x03, 0xc0, 0x07, 0xe0, 0x07, 0xe0, 0
 //----------------------------------------------------------------------------------------------
 
 //---------------------- battery sprites -------------------------------------------------------
-const unsigned char PROGMEM batt_0 []           = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_25 []          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_50 []          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_75 []          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_100 []         = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_empty []       = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x78, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0F, 0xC0, 0xFC, 0x0F, 0xC0, 0x78, 0x0F, 0xC0, 0x30, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x30, 0x0C, 0xC0, 0x30, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
-const unsigned char PROGMEM batt_empty_short [] = {0x7f, 0xfc, 0xff, 0xfe, 0xc0, 0x06, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xc0, 0x06, 0xff, 0xfe, 0x7f, 0xfc};
+/*
+  const unsigned char PROGMEM batt_0 [48]           = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_25 [48]          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_50 [48]          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_75 [48]          = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_100 [48]         = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_empty [48]       = {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x78, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0F, 0xC0, 0xFC, 0x0F, 0xC0, 0x78, 0x0F, 0xC0, 0x30, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x30, 0x0C, 0xC0, 0x30, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0};
+  const unsigned char PROGMEM batt_empty_short [20] = {0x7f, 0xfc, 0xff, 0xfe, 0xc0, 0x06, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xc0, 0x06, 0xff, 0xfe, 0x7f, 0xfc};
+*/
+const unsigned char PROGMEM batt_frames[7][48]    = { //[batt_0, batt_25, batt_50, batt_75, batt_100, batt_empty, batt_empty_small]
+
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0F, 0xDE, 0x00, 0x0C, 0xDE, 0x00, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0F, 0xDF, 0xE0, 0x0C, 0xDF, 0xE0, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0F, 0xDF, 0xFE, 0x0C, 0xDF, 0xFE, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEF, 0xDF, 0xFF, 0xEC, 0xDF, 0xFF, 0xEC, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x3F, 0xFF, 0xF0, 0x7F, 0xFF, 0xF8, 0xC0, 0x00, 0x0C, 0xC0, 0x78, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0C, 0xC0, 0xFC, 0x0F, 0xC0, 0xFC, 0x0F, 0xC0, 0x78, 0x0F, 0xC0, 0x30, 0x0F, 0xC0, 0x00, 0x0F, 0xC0, 0x30, 0x0C, 0xC0, 0x30, 0x0C, 0xC0, 0x00, 0x0C, 0x7F, 0xFF, 0xF8, 0x3F, 0xFF, 0xF0},
+  {0x7f, 0xfc, 0xff, 0xfe, 0xc0, 0x06, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xd0, 0x07, 0xc0, 0x06, 0xff, 0xfe, 0x7f, 0xfc}
+
+};
 
 //----------------------------------------------------------------------------------------------
 
-void header(int pasos, int pc, int par, int hi, int hv) {
+/*
+  Modo Operacion tiene distintos msj de muestra, a continuación los posibles mensajes
+
+  1: HORA                   -> Pantalla predeterminada, muestra valores y la hora
+  2: MOVIMIENTO_CORRECTO    -> Muestra valores y msj "MOVIMIENTO CORRECTO"
+  3: MOVIMIENTO_INCORRECTO  -> Muestra valores y msj "MOVIMIENTO INCORRECTO"
+  4: BATERIA_BAJA           -> Muestra valores y msj "BATERIA BAJA"
+  5: DESCONFIGURADO         -> Muestra valores y msj "EQUIPO DESCONFIGURADO"
   
-  
-  
+*/
+
+void modo_operacion(int msj) {
+
+  char buf[6];                                                // Char auxiliar
+
+  display.clearDisplay();                                     // Limpiamos gráficos actuales en la OLED
+  display.setTextSize(1);                                     // Establecemos el tamaño del texto a 1
+  display.setTextColor(WHITE);                                // Y de color blanco/azul
+
+  display.drawBitmap(10, y, stepsV3, 10, 8, 1);               // Logo stepsV3.
+  display.drawBitmap(43, y, check, 10, 8, 1);                 // Logo check.
+  display.drawBitmap(64, y, alert, 10, 8, 1);                 // Logo alert.
+  display.drawBitmap(87, y, acceleration, 10, 8, 1);          // Logo acceleration.
+  display.drawBitmap(115, y, velocityV2, 10, 8, 1);           // Logo velocityV2.
+
+  display.setCursor(0, y + 9);                                // Establecemos la posición X,Y.
+  sprintf(buf, "%05d", pasos);                                // Agregamos 0's iniciales. Conteo de pasos
+  display.println(F(buf));                                    // Mostramos en pantalla.
+
+  display.setCursor(38, y + 9);
+  sprintf(buf, "%03d", pc);                                   // Operaciones Correcta
+  display.println(F(buf));
+
+  display.setCursor(64, y + 9);
+  sprintf(buf, "%02d", par);                                  // Operacion Alto Riesgo
+  display.println(F(buf));
+
+  display.setCursor(87, y + 9);
+  sprintf(buf, "%02d", hi);                                   // Movimientos de Alta Intensidad
+  display.println(F(buf));
+
+  display.setCursor(115, y + 9);
+  sprintf(buf, "%02d", hv);                                   // Operaciones Alta Velocidad
+  display.println(F(buf));
+
+  //-- AQUI HACEMOS EL MUESTREO DE LOS DIFERENTES MENSAJES --
+
+  display.setTextSize(2);
+  display.setCursor(20, y + 18);
+  display.println(F("10:03 am"));                             // Hora
+
+  //sprintf(buf, "%02d:%02d %s", hour, minute, amPm);   ->  where char *amPm = "AM"; IT WORKS
+
+  display.display();
+}
+
+void modo_carga_bateria(int porc_carga) {
+
+  char buff[10];
+  int curr_time;
+
+  int frames_batt_sel;                                        // Aquí guardaremos el indice donde está guardado el sprite de la bateria a mostrar
+
+  if (porc_carga <= 25) {                                     // Dependiendo de la cantidad de carga en la batería se le asignará una animación diferente
+    frames_batt_sel = 1;                                      // batt_25
+  }
+  else if (porc_carga <= 50) {
+    frames_batt_sel = 2;                                      // batt_50
+  }
+  else if (porc_carga <= 75) {
+    frames_batt_sel = 3;                                      // batt_75
+  }
+  else if (porc_carga <= 100) {
+    frames_batt_sel = 4;                                      // batt_100
+  }
+
+  for (int i = 0; i < ANIMATION_NUMBER; i++) {
+
+    display.clearDisplay();
+    display.setTextSize(1);
+    display.setTextColor(WHITE);
+    display.setCursor(2, y);
+    display.print(F("    CARGANDO "));
+
+    sprintf(buff, "%02d", porc_carga);
+    strcat(buff, "%");
+
+    display.print(F(buff));                                     // Mostramos porcentaje de carga.
+
+    if (porc_carga == 100) {                                    // Si el porcentaje es igual a 100, no mostramos animación.
+      display.drawBitmap(xx - 4, yy, batt_frames[4], 24, 16, 1);                    // Seleccionamos el frame de bateria completa.
+    } else {
+      if (i == 1) {
+        display.drawBitmap(xx - 4, yy, batt_frames[frames_batt_sel], 24, 16, 1);    // Seleccionamos el frame correspondiente al porcentaje de carga actual.
+      } else {
+        display.drawBitmap(xx - 4, yy, batt_frames[0], 24, 16, 1);                  // Seleccionamos el frame de batería vacio.
+      }
+    }
+
+    display.display();
+    curr_time = millis();
+    while (millis() - curr_time <= ANIMATION_TIME);    // Delay sin bloquear interrupciones
+  }
+}
+
+/*
+  Modo Activacion tiene distintas pantallas, a continuación las posibles pantallas
+
+  1: BUFFER_LLENO         -> Muestra pantalla indicando de descargar la data
+  2: ACTIVANDO_IMU        -> Muestra pantalla indicando que se está activando el equipo
+  3: ACTIVANDO_IMU_FALLA  -> Muestra pantalla indicando del status del IMU es incorrecto y debera seguir intentando/reiniciar el equipo
+  4: BATERIA_BAJA         -> Muestra pantalla indicando que la bateria esta baja
+*/
+void modo_activacion(int msj) {
+
 }
 
 void setup() {
@@ -67,17 +211,12 @@ void setup() {
   pinMode(ledPin, OUTPUT);
 
   // SSD1306_SWITCHCAPVCC = generate display voltage from 3.3V internally
-  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) { // Address 0x3D for 128x64
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {       // Address 0x3D for 128x64
     Serial.println(F("SSD1306 allocation failed"));
     for (;;); // Don't proceed, loop forever
   }
   digitalWrite(ledPin, HIGH);
-  // Show initial display buffer contents on the screen --
-  // the library initializes this with an Adafruit splash screen.
-  //display.display();
-  //delay(1000); // Pause for 1 second
 
-  // Clear the buffer
   display.clearDisplay();
 
   // Draw bitmap orbittas logo on the screen
@@ -89,13 +228,13 @@ void setup() {
 }
 
 void loop() {
-  int tt = 4;
-  int xx = 59;
-  int yy = y + 9;
-  tt = 500;
-  int current_time = millis();
+  cont = random(0, 100);
+  modo_carga_bateria(cont);
+  modo_carga_bateria(cont);
+  /*tt = 500;
+    int current_time = millis();
 
-  while (millis() - current_time <= 2500) {                   // Modo operacion, hora
+    while (millis() - current_time <= 2500) {                   // Modo operacion, hora
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -123,10 +262,10 @@ void loop() {
     display.println(F("10:03 am"));
 
     display.display();
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {                   // Modo operacion, bateria baja
+    current_time = millis();
+    while (millis() - current_time <= 2500) {                   // Modo operacion, bateria baja
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -155,10 +294,10 @@ void loop() {
     display.drawBitmap(xx + 38, y + 21, batt_empty_short, 16, 10, 1);    // Modo operacion -> batería baja
 
     display.display();
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {                   // Modo operacion, Desconfigurado
+    current_time = millis();
+    while (millis() - current_time <= 2500) {                   // Modo operacion, Desconfigurado
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -187,10 +326,10 @@ void loop() {
     //display.drawBitmap(xx + 43, y + 21, batt_empty_short, 16, 10, 1);
 
     display.display();
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento incorrecto
+    current_time = millis();
+    while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento incorrecto
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -220,10 +359,10 @@ void loop() {
     display.println(F("INCORRECTO"));
 
     display.display();
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento correcto
+    current_time = millis();
+    while (millis() - current_time <= 2500) {                   // Modo operacion, Movimiento correcto
     display.clearDisplay();
     display.setTextSize(1);
     display.setTextColor(WHITE);
@@ -253,11 +392,11 @@ void loop() {
     display.println(F(" CORRECTO "));
 
     display.display();
-  }
+    }
 
 
-  current_time = millis();
-  while (millis() - current_time <= 3000) {
+    current_time = millis();
+    while (millis() - current_time <= 3000) {
     int ttt = 4;
     for (int i = 0; i < 8; i++) {
       display.clearDisplay();
@@ -268,10 +407,10 @@ void loop() {
       display.display();
       delay(ttt);
     }
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {
+    current_time = millis();
+    while (millis() - current_time <= 2500) {
     display.clearDisplay();
     display.setTextSize(1);
     display.setCursor(2, y);
@@ -286,9 +425,9 @@ void loop() {
     display.println(F("  ACTIVANDO EQUIPO   "));
     display.display();
     delay(tt);
-  }
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: 0 - 25;
+    }
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: 0 - 25;
     tt = 500;
 
     display.clearDisplay();
@@ -306,10 +445,10 @@ void loop() {
     display.drawBitmap(xx - 4, yy, batt_25, 24, 16, 1);
     display.display();
     delay(tt);
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: 0 - 50
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: 0 - 50
     tt = 500;
 
     display.clearDisplay();
@@ -327,10 +466,10 @@ void loop() {
     display.drawBitmap(xx - 4, yy, batt_50, 24, 16, 1);
     display.display();
     delay(tt);
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: 0 - 75
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: 0 - 75
     tt = 500;
 
     display.clearDisplay();
@@ -348,10 +487,10 @@ void loop() {
     display.drawBitmap(xx - 4, yy, batt_75, 24, 16, 1);
     display.display();
     delay(tt);
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: 0 - 100
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: 0 - 100
     tt = 500;
 
     display.clearDisplay();
@@ -369,10 +508,10 @@ void loop() {
     display.drawBitmap(xx - 4, yy, batt_100, 24, 16, 1);
     display.display();
     delay(tt);
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: cargada
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: cargada
 
     display.clearDisplay();
     display.setTextSize(1);
@@ -380,10 +519,10 @@ void loop() {
     display.println(F("    CARGADA 100%     "));
     display.drawBitmap(xx - 4, yy, batt_100, 24, 16, 1);
     display.display();
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {   // Batt: EMPTY
+    current_time = millis();
+    while (millis() - current_time <= 2500) {   // Batt: EMPTY
     display.clearDisplay();
     display.drawBitmap(xx - 4, y, batt_empty, 24, 16, 1);
     display.drawBitmap(xx - 4, y, batt_0, 24, 16, 1);
@@ -399,10 +538,10 @@ void loop() {
     display.println(F("    CARGAR BATERIA   "));
     display.display();
     delay(tt);
-  }
+    }
 
-  current_time = millis();
-  while (millis() - current_time <= 2500) {
+    current_time = millis();
+    while (millis() - current_time <= 2500) {
     display.clearDisplay();
     display.drawBitmap(xx, y, error_imu, 16, 16, 1);
     display.setTextSize(1);
@@ -419,6 +558,6 @@ void loop() {
     display.println(F("  DESCARGAR LA DATA  "));
     display.display();
     delay(tt);
-  }
-
+    }
+  */
 }
